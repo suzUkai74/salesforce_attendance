@@ -1,0 +1,58 @@
+require 'selenium-webdriver'
+require 'yaml'
+
+LOGIN_URL       = 'https://login.salesforce.com/'
+KINTAI_LINK_ID  = '01r5F000000QZBV_Tab'
+BASE_START_ID   = 'ttvTimeSt'
+INPUT_DIALOG_ID = 'dijit_DialogUnderlay_0'
+
+
+config     = YAML.load_file('config.yml')
+caps       = Selenium::WebDriver::Remote::Capabilities.chrome(
+  chromeOptions: {
+    args: ["--user-data-dir=#{config['chrome_profile']}"]
+  }
+)
+driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
+today      = Date.today
+start_date = Date.new(today.year, today.month, 1)
+end_date   = Date.new(today.year, today.month, -1)
+driver.navigate.to(LOGIN_URL)
+username_input = driver.find_element(:id, 'username')
+pw_input = driver.find_element(:id, 'password')
+username_input.send_keys(config['username'])
+pw_input.send_keys(config['password'])
+
+begin
+  driver.find_element(:id, 'Login').click
+  wait = Selenium::WebDriver::Wait.new(timeout: 30)
+  wait.until { driver.title.start_with?('Salesforce') }
+  puts('Login success.')
+rescue
+  puts('Login failed.')
+  driver.quit
+end
+
+driver.find_element(:id, KINTAI_LINK_ID).click
+wait = Selenium::WebDriver::Wait.new(timeout: 10)
+wait.until { driver.find_element(:id, 'largeTable').displayed? }
+
+(start_date..end_date).each do |date|
+  begin
+    puts(date)
+    driver.find_element(:id, "#{BASE_START_ID}#{date}").click
+    wait = Selenium::WebDriver::Wait.new(timeout: 10)
+    wait.until { driver.find_element(:id, INPUT_DIALOG_ID).displayed? }
+    st_input = driver.find_element(:id, 'startTime')
+    et_input = driver.find_element(:id, 'endTime')
+    time_submit = driver.find_element(:id, 'dlgInpTimeOk')
+    st_input.clear
+    st_input.send_keys(config['start_time'])
+    et_input.clear
+    et_input.send_keys(config['end_time'])
+    time_submit.click
+    wait = Selenium::WebDriver::Wait.new(timeout: 10)
+    wait.until { !driver.find_element(:id, INPUT_DIALOG_ID).displayed? }
+  rescue
+  end
+end
