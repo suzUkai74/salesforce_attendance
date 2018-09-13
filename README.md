@@ -8,7 +8,7 @@
 - end_time: Departure time
 - chrome_profile: Chrome profile destination path(default: ./chrome_profile)
 
-## exec
+## Exec
 
 ```
 ruby input_attendance.rb
