@@ -8,10 +8,11 @@ BASE_START_ID     = 'ttvTimeSt'
 INPUT_DIALOG_ID   = 'dijit_DialogUnderlay_0'
 PREV_MONTH_BTN_ID = 'prevMonthButton'
 
-config     = YAML.load_file('config.yml')
-caps       = Selenium::WebDriver::Remote::Capabilities.chrome(
+config       = YAML.load_file('config.yml')
+profile_path = config.key?('chrome_profile') ? config['chrome_profile'] : './chrome_profile'
+caps         = Selenium::WebDriver::Remote::Capabilities.chrome(
   chromeOptions: {
-    args: ["--user-data-dir=#{config['chrome_profile']}"]
+    args: ["--user-data-dir=#{profile_path}"]
   }
 )
 driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
