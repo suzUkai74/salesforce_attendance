@@ -1,11 +1,12 @@
 require 'selenium-webdriver'
 require 'yaml'
+require 'pry'
 
-LOGIN_URL       = 'https://login.salesforce.com/'
-KINTAI_LINK_ID  = '01r5F000000QZBV_Tab'
-BASE_START_ID   = 'ttvTimeSt'
-INPUT_DIALOG_ID = 'dijit_DialogUnderlay_0'
-
+LOGIN_URL         = 'https://login.salesforce.com/'
+KINTAI_LINK_ID    = '01r5F000000QZBV_Tab'
+BASE_START_ID     = 'ttvTimeSt'
+INPUT_DIALOG_ID   = 'dijit_DialogUnderlay_0'
+PREV_MONTH_BTN_ID = 'prevMonthButton'
 
 config     = YAML.load_file('config.yml')
 caps       = Selenium::WebDriver::Remote::Capabilities.chrome(
@@ -15,8 +16,8 @@ caps       = Selenium::WebDriver::Remote::Capabilities.chrome(
 )
 driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
 today      = Date.today
-start_date = Date.new(today.year, today.month, 1)
-end_date   = Date.new(today.year, today.month, -1)
+start_date = Date.new(today.year, today.month-1, 1)
+end_date   = Date.new(today.year, today.month-1, -1)
 driver.navigate.to(LOGIN_URL)
 username_input = driver.find_element(:id, 'username')
 pw_input = driver.find_element(:id, 'password')
@@ -35,7 +36,12 @@ end
 
 driver.find_element(:id, KINTAI_LINK_ID).click
 wait = Selenium::WebDriver::Wait.new(timeout: 10)
-wait.until { driver.find_element(:id, 'largeTable').displayed? }
+wait.until { driver.find_element(:id, PREV_MONTH_BTN_ID).displayed? }
+
+btn_div_element = driver.find_element(:id, PREV_MONTH_BTN_ID)
+btn_div_element.find_element(:xpath, '..').click
+wait = Selenium::WebDriver::Wait.new(timeout: 10)
+wait.until { !driver.find_element(:id, 'shim').displayed? }
 
 (start_date..end_date).each do |date|
   begin
