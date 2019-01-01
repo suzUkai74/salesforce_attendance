@@ -1,6 +1,7 @@
 require 'selenium-webdriver'
 require 'yaml'
 require 'pry'
+require 'active_support/time'
 
 LOGIN_URL         = 'https://login.salesforce.com/'
 KINTAI_LINK_ID    = '01r5F000000QZBV_Tab'
@@ -17,8 +18,8 @@ caps         = Selenium::WebDriver::Remote::Capabilities.chrome(
 )
 driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
 today      = Date.today
-start_date = Date.new(today.year, today.month-1, 1)
-end_date   = Date.new(today.year, today.month-1, -1)
+start_date = Date.new(today.year, today.month, 1) - 1.month
+end_date   = Date.new(today.year, today.month, -1) - 1.month
 driver.navigate.to(LOGIN_URL)
 username_input = driver.find_element(:id, 'username')
 pw_input = driver.find_element(:id, 'password')
