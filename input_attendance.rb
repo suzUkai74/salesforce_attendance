@@ -55,8 +55,12 @@ wait.until { !driver.find_element(:id, 'shim').displayed? }
     et_input = driver.find_element(:id, 'endTime')
     time_submit = driver.find_element(:id, 'dlgInpTimeOk')
     st_input.clear
+    wait = Selenium::WebDriver::Wait.new(timeout: 10)
+    wait.until { st_input.text.blank? }
     st_input.send_keys(config['start_time'])
     et_input.clear
+    wait = Selenium::WebDriver::Wait.new(timeout: 10)
+    wait.until { et_input.text.blank? }
     et_input.send_keys(config['end_time'])
     time_submit.click
     wait = Selenium::WebDriver::Wait.new(timeout: 10)
