@@ -57,6 +57,7 @@ wait.until { !driver.find_element(:id, 'shim').displayed? }
     st_input.clear
     wait = Selenium::WebDriver::Wait.new(timeout: 10)
     wait.until { st_input.text.blank? }
+    sleep 0.5
     st_input.send_keys(config['start_time'])
     et_input.clear
     wait = Selenium::WebDriver::Wait.new(timeout: 10)
