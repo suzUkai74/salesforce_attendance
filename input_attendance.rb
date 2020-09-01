@@ -19,7 +19,7 @@ caps         = Selenium::WebDriver::Remote::Capabilities.chrome(
 driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
 today      = Date.today
 start_date = Date.new(today.year, today.month, 1) - 1.month
-end_date   = Date.new(today.year, today.month, -1) - 1.month
+end_date   = start_date.end_of_month
 driver.navigate.to(LOGIN_URL)
 username_input = driver.find_element(:id, 'username')
 pw_input = driver.find_element(:id, 'password')
