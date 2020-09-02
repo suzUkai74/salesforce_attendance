@@ -1,0 +1,5 @@
+username: username
+password: password
+start_time: '10:00'
+end_time: '19:00'
+chrome_profile: ./chrome_profile
