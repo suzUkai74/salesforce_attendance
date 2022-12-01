@@ -65,6 +65,7 @@ wait.until { !driver.find_element(:id, 'shim').displayed? }
     time_submit.click
     wait = Selenium::WebDriver::Wait.new(timeout: 10)
     wait.until { !driver.find_element(:id, INPUT_DIALOG_ID).displayed? }
-  rescue
+  rescue => e
+    puts(e)
   end
 end
