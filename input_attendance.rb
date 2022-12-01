@@ -3,8 +3,6 @@ require 'yaml'
 require 'pry'
 require 'active_support/time'
 
-LOGIN_URL         = 'https://login.salesforce.com/'
-NEW_LOGIN_URL     = 'https://d10000000azraea2.my.salesforce.com/'
 KINTAI_LINK_ID    = '01r5F000000QZBV_Tab'
 BASE_START_ID     = 'ttvTimeSt'
 INPUT_DIALOG_ID   = 'dijit_DialogUnderlay_0'
@@ -21,7 +19,7 @@ driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
 today      = Date.today
 start_date = Date.new(today.year, today.month, 1) - 1.month
 end_date   = start_date.end_of_month
-driver.navigate.to(NEW_LOGIN_URL)
+driver.navigate.to(config['login_url'])
 username_input = driver.find_element(:id, 'username')
 pw_input = driver.find_element(:id, 'password')
 username_input.send_keys(config['username'])
