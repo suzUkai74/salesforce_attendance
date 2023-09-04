@@ -3,10 +3,10 @@ require 'yaml'
 require 'pry'
 require 'active_support/time'
 
-KINTAI_LINK_ID    = '01r5F000000QZBV_Tab'
-BASE_START_ID     = 'ttvTimeSt'
-INPUT_DIALOG_ID   = 'dijit_DialogUnderlay_0'
-PREV_MONTH_BTN_ID = 'prevMonthButton'
+KINTAI_LINK_CLASS  = 'wt-勤務表'
+BASE_START_ID      = 'ttvTimeSt'
+INPUT_DIALOG_ID    = 'dijit_DialogUnderlay_0'
+YEAR_MONTH_LIST_ID = 'yearMonthList'
 
 config       = YAML.load_file('config.yml')
 profile_path = config.key?('chrome_profile') ? config['chrome_profile'] : './chrome_profile'
@@ -17,7 +17,7 @@ caps         = Selenium::WebDriver::Remote::Capabilities.chrome(
 )
 driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
 today      = Date.today
-start_date = Date.new(today.year, today.month, 1) - 1.month
+start_date = ARGV[0].blank? ? (Date.new(today.year, today.month, 1) - 1.month) : Date.parse(ARGV[0]).beginning_of_month
 end_date   = start_date.end_of_month
 driver.navigate.to(config['login_url'])
 username_input = driver.find_element(:id, 'username')
@@ -35,12 +35,12 @@ rescue
   driver.quit
 end
 
-driver.find_element(:id, KINTAI_LINK_ID).click
+driver.find_element(:class, KINTAI_LINK_CLASS).click
 wait = Selenium::WebDriver::Wait.new(timeout: 10)
-wait.until { driver.find_element(:id, PREV_MONTH_BTN_ID).displayed? }
+wait.until { driver.find_element(:id, YEAR_MONTH_LIST_ID).displayed? }
 
-btn_div_element = driver.find_element(:id, PREV_MONTH_BTN_ID)
-btn_div_element.find_element(:xpath, '..').click
+year_month_list = Selenium::WebDriver::Support::Select.new(driver.find_element(:id, YEAR_MONTH_LIST_ID))
+year_month_list.select_by(:value, start_date.strftime('%Y%m%d'))
 wait = Selenium::WebDriver::Wait.new(timeout: 10)
 wait.until { !driver.find_element(:id, 'shim').displayed? }
 
