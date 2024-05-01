@@ -55,7 +55,7 @@ end
 
 (start_date..end_date).each do |date|
   if driver.find_elements(:id, "#{BASE_START_ID}#{date}").empty?
-    puts("#{date}: is Holiday")
+    puts("#{date}:Holiday")
     next
   end
   driver.find_element(:id, "#{BASE_START_ID}#{date}").click
@@ -65,6 +65,12 @@ end
   input_time(driver, 'startTime', config['start_time'])
   input_time(driver, 'endTime', config['end_time'])
   time_submit.click
+  sleep 0.5 # wait until confirm
+  confirm = driver.find_elements(id: 'confirmAlertOk')
+  if !confirm.empty? && confirm.first.displayed?
+    confirm.first.click
+  end
+
   wait = Selenium::WebDriver::Wait.new(timeout: 10)
   wait.until { !driver.find_element(:id, INPUT_DIALOG_ID).displayed? }
   puts("#{date}:Success")
