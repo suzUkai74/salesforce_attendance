@@ -7,6 +7,7 @@
 - start_time: Arrival time
 - end_time: Departure time
 - chrome_profile: Chrome profile destination path(default: ./chrome_profile)
+- login_url: Salesforce login url
 
 ## Exec
 
