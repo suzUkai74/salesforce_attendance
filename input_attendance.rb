@@ -8,24 +8,24 @@ BASE_START_ID      = 'ttvTimeSt'.freeze
 INPUT_DIALOG_ID    = 'dijit_DialogUnderlay_0'.freeze
 YEAR_MONTH_LIST_ID = 'yearMonthList'.freeze
 
-config       = YAML.load_file('config.yml')
-profile_path = config.key?('chrome_profile') ? config['chrome_profile'] : './chrome_profile'
-caps         = Selenium::WebDriver::Remote::Capabilities.chrome(
-  chromeOptions: {
-    args: ["--user-data-dir=#{profile_path}"]
-  }
-)
-driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
-today      = Date.today
-start_date = ARGV[0].blank? ? (Date.new(today.year, today.month, 1) - 1.month) : Date.parse(ARGV[0]).beginning_of_month
-end_date   = start_date.end_of_month
-driver.navigate.to(config['login_url'])
-username_input = driver.find_element(:id, 'username')
-pw_input = driver.find_element(:id, 'password')
-username_input.send_keys(config['username'])
-pw_input.send_keys(config['password'])
-
 begin
+  config       = YAML.load_file('config.yml')
+  profile_path = config.key?('chrome_profile') ? config['chrome_profile'] : './chrome_profile'
+  caps         = Selenium::WebDriver::Remote::Capabilities.chrome(
+    chromeOptions: {
+      args: ["--user-data-dir=#{profile_path}"]
+    }
+  )
+  driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
+  today      = Date.today
+  start_date = ARGV[0].blank? ? (Date.new(today.year, today.month, 1) - 1.month) : Date.parse(ARGV[0]).beginning_of_month
+  end_date   = start_date.end_of_month
+  driver.navigate.to(config['login_url'])
+  username_input = driver.find_element(:id, 'username')
+  pw_input = driver.find_element(:id, 'password')
+  username_input.send_keys(config['username'])
+  pw_input.send_keys(config['password'])
+
   driver.find_element(:id, 'Login').click
   wait = Selenium::WebDriver::Wait.new(timeout: 30)
   wait.until { driver.title.start_with?('Salesforce') }
@@ -35,14 +35,20 @@ rescue StandardError
   driver.quit
 end
 
-driver.find_element(:class, KINTAI_LINK_CLASS).click
-wait = Selenium::WebDriver::Wait.new(timeout: 10)
-wait.until { driver.find_element(:id, YEAR_MONTH_LIST_ID).displayed? }
+begin
+  driver.find_element(:class, KINTAI_LINK_CLASS).click
+  wait = Selenium::WebDriver::Wait.new(timeout: 10)
+  wait.until { driver.find_element(:id, YEAR_MONTH_LIST_ID).displayed? }
 
-year_month_list = Selenium::WebDriver::Support::Select.new(driver.find_element(:id, YEAR_MONTH_LIST_ID))
-year_month_list.select_by(:value, start_date.strftime('%Y%m%d'))
-wait = Selenium::WebDriver::Wait.new(timeout: 10)
-wait.until { !driver.find_element(:id, 'shim').displayed? }
+  year_month_list = Selenium::WebDriver::Support::Select.new(driver.find_element(:id, YEAR_MONTH_LIST_ID))
+  year_month_list.select_by(:value, start_date.strftime('%Y%m%d'))
+  wait = Selenium::WebDriver::Wait.new(timeout: 10)
+  wait.until { !driver.find_element(:id, 'shim').displayed? }
+rescue StandardError => e
+  puts('Failed to navigate to attendance page.')
+  puts e
+  driver.quit
+end
 
 def input_time(driver, id, val)
   input = driver.find_element(:id, id)
