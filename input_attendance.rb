@@ -3,7 +3,7 @@ require 'yaml'
 require 'pry'
 require 'active_support/time'
 
-KINTAI_LINK_CLASS  = 'wt-勤務表'.freeze
+KINTAI_LINK_ID     = '01r5F000000QZBV_Tab'.freeze
 BASE_START_ID      = 'ttvTimeSt'.freeze
 INPUT_DIALOG_ID    = 'dijit_DialogUnderlay_0'.freeze
 YEAR_MONTH_LIST_ID = 'yearMonthList'.freeze
@@ -36,7 +36,7 @@ rescue StandardError
 end
 
 begin
-  driver.find_element(:class, KINTAI_LINK_CLASS).click
+  driver.find_element(:id, KINTAI_LINK_ID).click
   wait = Selenium::WebDriver::Wait.new(timeout: 10)
   wait.until { driver.find_element(:id, YEAR_MONTH_LIST_ID).displayed? }
 
