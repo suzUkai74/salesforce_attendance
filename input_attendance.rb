@@ -36,7 +36,10 @@ rescue StandardError
 end
 
 begin
+  wait = Selenium::WebDriver::Wait.new(timeout: 10)
+  wait.until { driver.find_element(:id, KINTAI_LINK_ID).displayed? }
   driver.find_element(:id, KINTAI_LINK_ID).click
+
   wait = Selenium::WebDriver::Wait.new(timeout: 10)
   wait.until { driver.find_element(:id, YEAR_MONTH_LIST_ID).displayed? }
 
