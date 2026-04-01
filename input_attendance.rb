@@ -1,89 +1,104 @@
 require 'selenium-webdriver'
 require 'yaml'
-require 'pry'
 require 'active_support/time'
 
 KINTAI_LINK_ID     = '01r5F000000QZBV_Tab'.freeze
 BASE_START_ID      = 'ttvTimeSt'.freeze
 INPUT_DIALOG_ID    = 'dijit_DialogUnderlay_0'.freeze
 YEAR_MONTH_LIST_ID = 'yearMonthList'.freeze
+CONFIRM_DIALOG_ID   = 'confirmAlertOk'.freeze
 
-begin
-  config       = YAML.load_file('config.yml')
-  profile_path = config.key?('chrome_profile') ? config['chrome_profile'] : './chrome_profile'
-  caps         = Selenium::WebDriver::Remote::Capabilities.chrome(
-    chromeOptions: {
-      args: ["--user-data-dir=#{profile_path}"]
-    }
-  )
-  driver     = Selenium::WebDriver.for(:chrome, desired_capabilities: caps)
-  today      = Date.today
-  start_date = ARGV[0].blank? ? (Date.new(today.year, today.month, 1) - 1.month) : Date.parse(ARGV[0]).beginning_of_month
-  end_date   = start_date.end_of_month
-  driver.navigate.to(config['login_url'])
-  username_input = driver.find_element(:id, 'username')
-  pw_input = driver.find_element(:id, 'password')
-  username_input.send_keys(config['username'])
-  pw_input.send_keys(config['password'])
-
-  driver.find_element(:id, 'Login').click
-  wait = Selenium::WebDriver::Wait.new(timeout: 30)
-  wait.until { driver.title.start_with?('Salesforce') }
-  puts('Login success.')
-rescue StandardError
-  puts('Login failed.')
-  driver.quit
-end
-
-begin
-  wait = Selenium::WebDriver::Wait.new(timeout: 10)
-  wait.until { driver.find_element(:id, KINTAI_LINK_ID).displayed? }
-  driver.find_element(:id, KINTAI_LINK_ID).click
-
-  wait = Selenium::WebDriver::Wait.new(timeout: 10)
-  wait.until { driver.find_element(:id, YEAR_MONTH_LIST_ID).displayed? }
-
-  year_month_list = Selenium::WebDriver::Support::Select.new(driver.find_element(:id, YEAR_MONTH_LIST_ID))
-  year_month_list.select_by(:value, start_date.strftime('%Y%m%d'))
-  wait = Selenium::WebDriver::Wait.new(timeout: 10)
-  wait.until { !driver.find_element(:id, 'shim').displayed? }
-rescue StandardError => e
-  puts('Failed to navigate to attendance page.')
-  puts e
-  driver.quit
-end
-
-def input_time(driver, id, val)
-  input = driver.find_element(:id, id)
-  input.clear
-  wait = Selenium::WebDriver::Wait.new(timeout: 10)
-  wait.until { input.text.blank? }
-  sleep 0.5 if id == 'startTime' # wait until inputable st_input
-  input.send_keys(val)
-end
-
-(start_date..end_date).each do |date|
-  if driver.find_elements(:id, "#{BASE_START_ID}#{date}").empty?
-    puts("#{date}:Holiday")
-    next
-  end
-  driver.find_element(:id, "#{BASE_START_ID}#{date}").click
-  wait = Selenium::WebDriver::Wait.new(timeout: 10)
-  wait.until { driver.find_element(:id, INPUT_DIALOG_ID).displayed? }
-  time_submit = driver.find_element(:id, 'dlgInpTimeOk')
-  input_time(driver, 'startTime', config['start_time'])
-  input_time(driver, 'endTime', config['end_time'])
-  time_submit.click
-  sleep 0.5 # wait until confirm
-  confirm = driver.find_elements(id: 'confirmAlertOk')
-  if !confirm.empty? && confirm.first.displayed?
-    confirm.first.click
+class AttendanceInputter
+  def initialize(config)
+    @config = config
+    @driver = setup_driver
   end
 
-  wait = Selenium::WebDriver::Wait.new(timeout: 10)
-  wait.until { !driver.find_element(:id, INPUT_DIALOG_ID).displayed? }
-  puts("#{date}:Success")
+  def run(start_date)
+    login
+    navigate_to_attendance(start_date)
+    input_attendance(start_date, start_date.end_of_month)
+  ensure
+    @driver&.quit
+  end
+
+  private
+
+  def setup_driver
+    profile_path = @config.fetch('chrome_profile', './chrome_profile')
+    options = Selenium::WebDriver::Chrome::Options.new
+    options.add_argument("--user-data-dir=#{profile_path}")
+    Selenium::WebDriver.for(:chrome, options: options)
+  end
+
+  def login
+    @driver.navigate.to(@config['login_url'])
+    @driver.find_element(:id, 'username').send_keys(@config['username'])
+    @driver.find_element(:id, 'password').send_keys(@config['password'])
+    @driver.find_element(:id, 'Login').click
+    wait_until(timeout: 30) { @driver.title.start_with?('Salesforce') }
+    puts 'Login success.'
+  rescue StandardError
+    raise 'Login failed.'
+  end
+
+  def navigate_to_attendance(start_date)
+    wait_until { @driver.find_element(:id, KINTAI_LINK_ID).displayed? }
+    @driver.find_element(:id, KINTAI_LINK_ID).click
+    wait_until { @driver.find_element(:id, YEAR_MONTH_LIST_ID).displayed? }
+    year_month_list = Selenium::WebDriver::Support::Select.new(@driver.find_element(:id, YEAR_MONTH_LIST_ID))
+    year_month_list.select_by(:value, start_date.strftime('%Y%m%d'))
+    wait_until { !@driver.find_element(:id, 'shim').displayed? }
+  rescue StandardError => e
+    raise "Failed to navigate to attendance page: #{e.message}"
+  end
+
+  def input_attendance(start_date, end_date)
+    (start_date..end_date).each do |date|
+      element = @driver.find_elements(:id, "#{BASE_START_ID}#{date}").first
+      if element.nil?
+        puts "#{date}:Holiday"
+        next
+      end
+
+      begin
+        element.click
+        wait_until { @driver.find_element(:id, INPUT_DIALOG_ID).displayed? }
+        time_submit = @driver.find_element(:id, 'dlgInpTimeOk')
+        input_time('startTime', @config['start_time'])
+        input_time('endTime', @config['end_time'])
+        time_submit.click
+        sleep 0.5 # wait for confirm dialog to appear
+        confirm = @driver.find_elements(id: CONFIRM_DIALOG_ID)
+        confirm.first.click if confirm.first&.displayed?
+        wait_until { !@driver.find_element(:id, INPUT_DIALOG_ID).displayed? }
+        puts "#{date}:Success"
+      rescue StandardError => e
+        puts "#{date}:Failure"
+        puts e
+      end
+    end
+  end
+
+  def input_time(id, val)
+    input = @driver.find_element(:id, id)
+    input.clear
+    wait_until { input.text.blank? && input.enabled? }
+    input.send_keys(val)
+  end
+
+  def wait_until(timeout: 10, &block)
+    Selenium::WebDriver::Wait.new(timeout: timeout).until(&block)
+  end
+end
+
+config     = YAML.load_file('config.yml')
+today      = Date.today
+start_date = ARGV[0].blank? ? (Date.new(today.year, today.month, 1) - 1.month) : Date.parse(ARGV[0]).beginning_of_month
+
+begin
+  AttendanceInputter.new(config).run(start_date)
 rescue StandardError => e
-  puts("#{date}:Failure")
-  puts(e)
+  puts e.message
+  exit 1
 end
