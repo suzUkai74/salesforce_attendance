@@ -4,3 +4,51 @@ start_time: '10:00'
 end_time: '19:00'
 chrome_profile: ./chrome_profile
 login_url: https://example.com
+
+# 勤怠入力（input_attendance.rb）の設定
+attendance:
+  # 勤怠入力画面の要素（すべて id 指定）
+  selectors:
+    tab_link: '01r5F000000QZBV_Tab'
+    year_month_list: 'yearMonthList'
+    shim: 'shim'
+    time_cell_prefix: 'ttvTimeSt'
+    dialog: 'dijit_DialogUnderlay_0'
+    start_time_input: 'startTime'
+    end_time_input: 'endTime'
+    time_ok: 'dlgInpTimeOk'
+    confirm_button: 'confirmAlertOk'
+
+# 経費精算（input_expense.rb）の設定
+expense:
+  # 締め期間（昨月 start_day 〜 今月 end_day）
+  start_day: 21
+  end_day: 20
+  item: '交通費'
+  from: '東京'
+  to: '品川'
+  # 入力対象の曜日（0=日 ... 6=土）。既定は月・水・金
+  weekdays: [1, 3, 5]
+  date_format: '%Y/%m/%d'
+  # 経費精算画面の要素。実際の画面に合わせて書き換えること。
+  # 値は 'elementId' と書くと id 指定、'css: .foo' のように書くとその指定方法になる。
+  selectors:
+    tab_link: '01r5F000000QZBV_Tab'
+    form_area: 'tsfFormArea'
+    add_button:
+      css: '#expApplyForm0 .png-add'
+    dialog: 'dijit_Dialog_3'
+    date_input: 'DlgDetailDate'
+    item: 'DlgDetailExpItem'
+    from_input: 'DlgExpDetailStFrom'
+    to_input: 'DlgExpDetailStTo'
+    round_trip_button:
+      css: '.pp_btn_oneway'
+    search_button:
+      css: '.pp_btn_ektsrch'
+    loading:
+      css: '.ts-dialog-loading'
+    search_result_ok: 'expSearchOk'
+    continue_button:
+      css: '.ts-edge-continue button'
+    confirm_button: 'confirmAlertOk'
