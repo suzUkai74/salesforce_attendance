@@ -127,14 +127,13 @@ class ExpenseInputter
 end
 
 config = YAML.load_file('config.yml')
-anchor = ARGV[0].blank? ? Date.today : Date.parse(ARGV[0])
 
 # 締め期間の開始日・終了日は config で指定する（既定: 昨月21日 〜 今月20日）。
 expense    = config.fetch('expense', {})
 start_day  = expense.fetch('start_day', 21)
 end_day    = expense.fetch('end_day', 20)
-start_date = (anchor - 1.month).change(day: start_day)
-end_date   = anchor.change(day: end_day)
+start_date = (Date.today - 1.month).change(day: start_day)
+end_date   = Date.today.change(day: end_day)
 
 puts "対象期間: #{start_date} 〜 #{end_date}"
 
