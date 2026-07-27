@@ -1,13 +1,12 @@
 username: username
 password: password
-start_time: '10:00'
-end_time: '19:00'
 chrome_profile: ./chrome_profile
 login_url: https://example.com
 
 # 勤怠入力（input_attendance.rb）の設定
 attendance:
-  # 勤怠入力画面の要素（すべて id 指定）
+  start_time: '10:00'
+  end_time: '19:00'
   selectors:
     tab_link: '01r5F000000QZBV_Tab'
     year_month_list: 'yearMonthList'

@@ -49,8 +49,8 @@ class AttendanceInputter
         element.click
         wait_until { find(:dialog).displayed? }
         time_submit = find(:time_ok)
-        input_time(:start_time_input, @config['start_time'])
-        input_time(:end_time_input, @config['end_time'])
+        input_time(:start_time_input, @attendance['start_time'])
+        input_time(:end_time_input, @attendance['end_time'])
         time_submit.click
         sleep 0.5 # wait for confirm dialog to appear
         confirm = find_all(:confirm_button)

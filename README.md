@@ -34,14 +34,18 @@ cp config.yml.sample config.yml
 |------|------|----|
 | `username` | Salesforce のログインユーザー名 | `user@example.com` |
 | `password` | Salesforce のログインパスワード | `password123` |
-| `start_time` | 出勤時刻 | `'10:00'` |
-| `end_time` | 退勤時刻 | `'19:00'` |
 | `chrome_profile` | Chrome プロファイルのパス（省略時: `./chrome_profile`） | `./chrome_profile` |
 | `login_url` | Salesforce のログイン URL | `https://login.salesforce.com` |
 | `attendance` | 勤怠入力の設定（下記） | - |
 | `expense` | 経費精算の設定（下記） | - |
 
-#### `attendance.selectors` 配下（勤怠入力）
+#### `attendance` 配下（勤怠入力）
+
+| キー | 説明 | 例 |
+|------|------|----|
+| `start_time` | 出勤時刻 | `'10:00'` |
+| `end_time` | 退勤時刻 | `'19:00'` |
+| `selectors` | 勤怠入力画面の要素指定（下記） | - |
 
 勤怠入力画面の要素をすべて id で指定します。
 
