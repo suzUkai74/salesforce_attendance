@@ -57,6 +57,14 @@ class SalesforceSession
     @driver.execute_script('arguments[0].click();', element)
   end
 
+  # 確認ダイアログが表示されたら OK を押す。一定時間出なければ何もしない。
+  def confirm
+    wait_until(timeout: 3) { displayed?(:confirm_button) }
+    click(:confirm_button)
+  rescue Selenium::WebDriver::Error::TimeoutError
+    nil # 確認ダイアログが出ないケースもあるため無視する
+  end
+
   # セレクタは 'foo'（id 扱い）または { css: '.foo' } のような形式で設定する。
   def locator(key)
     spec = raw_selector(key)

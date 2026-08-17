@@ -8,13 +8,12 @@ require_relative 'salesforce_session'
 class ExpenseInputter
   extend Forwardable
   # 要素操作は SalesforceSession に委譲する。
-  def_delegators :@session, :find, :find_all, :displayed?, :click, :wait_until
+  def_delegators :@session, :find, :find_all, :displayed?, :click, :confirm, :wait_until
 
   DEFAULT_DATE_FORMAT = '%Y/%m/%d'.freeze
   DEFAULT_WEEKDAYS    = [1, 3, 5].freeze # 月・水・金
 
   def initialize(config)
-    @config    = config
     @expense   = config.fetch('expense') { raise 'config.yml に expense セクションがありません。' }
     selectors  = @expense.fetch('selectors') { raise 'config.yml に expense.selectors がありません。' }
     @session   = SalesforceSession.new(config, selectors)
@@ -96,9 +95,7 @@ class ExpenseInputter
 
   def submit(last:)
     click(:continue_button)
-    sleep 0.5
-    confirm = find_all(:confirm_button)
-    confirm.first.click if confirm.first&.displayed?
+    confirm
     close_dialog if last
   end
 

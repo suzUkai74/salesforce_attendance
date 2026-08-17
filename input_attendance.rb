@@ -6,10 +6,9 @@ require_relative 'salesforce_session'
 class AttendanceInputter
   extend Forwardable
   # 要素操作は SalesforceSession に委譲する。
-  def_delegators :@session, :find, :find_all, :click, :wait_until
+  def_delegators :@session, :find, :find_all, :click, :confirm, :wait_until
 
   def initialize(config)
-    @config      = config
     @attendance  = config.fetch('attendance') { raise 'config.yml に attendance セクションがありません。' }
     selectors    = @attendance.fetch('selectors') { raise 'config.yml に attendance.selectors がありません。' }
     @session     = SalesforceSession.new(config, selectors)
@@ -52,9 +51,7 @@ class AttendanceInputter
         input_time(:start_time_input, @attendance['start_time'])
         input_time(:end_time_input, @attendance['end_time'])
         time_submit.click
-        sleep 0.5 # wait for confirm dialog to appear
-        confirm = find_all(:confirm_button)
-        confirm.first.click if confirm.first&.displayed?
+        confirm
         wait_until { !find(:dialog).displayed? }
         puts "#{date}:Success"
       rescue StandardError => e
