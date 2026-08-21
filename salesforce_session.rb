@@ -15,6 +15,8 @@ class SalesforceSession
   def login
     @driver.navigate.to(@config['login_url'])
     @driver.find_element(:id, 'username').send_keys(@config['username'])
+    @driver.find_element(:id, 'Login').click
+    sleep 1 # パスワード入力欄が表示されるまで待つ
     @driver.find_element(:id, 'password').send_keys(@config['password'])
     @driver.find_element(:id, 'Login').click
     wait_until(timeout: 30) { @driver.title.start_with?('Salesforce') }
